@@ -62,31 +62,31 @@ class _NewTransactionState extends State<NewTransaction> {
               decoration: InputDecoration(labelText: 'Título'),
               controller: titleController,
               onSubmitted: (_) => submitData(),
-              // onChanged: (val) {
-              //   titleInput = val;
-              // },
             ),
             TextField(
               decoration: InputDecoration(labelText: 'Preço'),
               controller: amountController,
               keyboardType: TextInputType.number,
               onSubmitted: (_) => submitData(),
-              // onChanged: (val) => amountInput = val,
             ),
             Container(
                 height: 70,
                 child: Row(
                   children: <Widget>[
                     Expanded(
-                        child: Text(
-                      selectedDate == null
-                          ? 'Nenhuma data selecionada'
-                          : 'Data selecionada: ${DateFormat.yMd().format(selectedDate)}',
-                    )),
+                      child: Text(
+                        selectedDate == null
+                            ? 'Nenhuma data selecionada'
+                            : 'Data selecionada: ${DateFormat("dd/MM/yyyy").format(selectedDate)}',
+                      ),
+                    ),
                     FlatButton(
                       textColor: Theme.of(context).primaryColor,
                       child: Text("Escolha uma data",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize:
+                                  20 * MediaQuery.of(context).textScaleFactor)),
                       onPressed: _presentDayPicker,
                     ),
                   ],

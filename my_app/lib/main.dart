@@ -46,6 +46,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _userTransactions = [];
+  bool _showChart;
 
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((tx) {
@@ -91,25 +92,66 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Gastos Pessoais',
-        ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _startAddNewTransaction(context),
-          ),
-        ],
+    final deviceOrientation = MediaQuery.of(context).orientation;
+
+    final appBar = AppBar(
+      title: Text(
+        'Gastos Pessoais',
       ),
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () => _startAddNewTransaction(context),
+        ),
+      ],
+    );
+
+    final listOfTransactions = Container(
+        height: (MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
+                appBar.preferredSize.height) *
+            0.7,
+        child: TransactionList(_userTransactions, _deleteTransaction));
+
+    return Scaffold(
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Column(
           // mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Chart(_recentTransactions),
-            TransactionList(_userTransactions, _deleteTransaction),
+            if (deviceOrientation == Orientation.landscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(_showChart ? 'Graficos' : 'Transações'),
+                  Switch(
+                    value: _showChart,
+                    onChanged: (value) {
+                      setState(() {
+                        _showChart = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            if (deviceOrientation == Orientation.landscape)
+              _showChart
+                  ? Container(
+                      height: (MediaQuery.of(context).size.height -
+                              MediaQuery.of(context).padding.top -
+                              appBar.preferredSize.height) *
+                          0.7,
+                      child: Chart(_recentTransactions))
+                  : listOfTransactions
+            else
+              Container(
+                  height: (MediaQuery.of(context).size.height -
+                          MediaQuery.of(context).padding.top -
+                          appBar.preferredSize.height) *
+                      0.3,
+                  child: Chart(_recentTransactions)),
+            listOfTransactions
           ],
         ),
       ),
