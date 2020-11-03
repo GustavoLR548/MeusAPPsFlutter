@@ -31,7 +31,7 @@ class Transaction {
   }
 
   String getDate() {
-    return DateFormat("yyyy/MM/dd -HH:mm").format(date);
+    return DateFormat("dd/MM/yyyy -HH:mm").format(date);
   }
 
   DateTime getDateTime() {

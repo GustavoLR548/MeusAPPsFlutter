@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:my_app/widgets/adaptive/adaptiveFlatButton.dart';
 
 class NewTransaction extends StatefulWidget {
   final Function addTx;
@@ -51,10 +55,17 @@ class _NewTransactionState extends State<NewTransaction> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final bool ehIOS = Platform.isIOS;
+
+    return SingleChildScrollView(
+        child: Card(
       elevation: 5,
       child: Container(
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.only(
+            top: 10,
+            left: 10,
+            right: 10,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
@@ -80,15 +91,10 @@ class _NewTransactionState extends State<NewTransaction> {
                             : 'Data selecionada: ${DateFormat("dd/MM/yyyy").format(selectedDate)}',
                       ),
                     ),
-                    FlatButton(
-                      textColor: Theme.of(context).primaryColor,
-                      child: Text("Escolha uma data",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize:
-                                  20 * MediaQuery.of(context).textScaleFactor)),
+                    AdaptiveFlatButton(
+                      text: 'Escolha uma data',
                       onPressed: _presentDayPicker,
-                    ),
+                    )
                   ],
                 )),
             RaisedButton(
@@ -100,6 +106,6 @@ class _NewTransactionState extends State<NewTransaction> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

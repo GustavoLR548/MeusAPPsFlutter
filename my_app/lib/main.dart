@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-import './widgets/new_transaction.dart';
-import './widgets/transaction_list.dart';
-import './widgets/chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
+import 'widgets/transaction/new_transaction.dart';
+import 'widgets/transaction/transaction_list.dart';
+import 'widgets/chart/chart.dart';
 import './models/transaction.dart';
 
 void main() => runApp(MyApp());
@@ -46,7 +49,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _userTransactions = [];
-  bool _showChart;
+  bool _showChart = false;
 
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((tx) {
@@ -92,74 +95,101 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final deviceOrientation = MediaQuery.of(context).orientation;
+    final bool ehIOS = Platform.isIOS;
 
-    final appBar = AppBar(
-      title: Text(
-        'Gastos Pessoais',
-      ),
-      actions: <Widget>[
-        IconButton(
-          icon: Icon(Icons.add),
-          onPressed: () => _startAddNewTransaction(context),
-        ),
-      ],
-    );
+    final deviceSettings = MediaQuery.of(context);
+
+    final deviceOrientation = deviceSettings.orientation;
+
+    final PreferredSizeWidget appBar = ehIOS
+        ? AppBar(
+            title: Text(
+              'Gastos Pessoais',
+            ),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () => _startAddNewTransaction(context),
+              ),
+            ],
+          )
+        : CupertinoNavigationBar(
+            middle: Text('Gastos Pessoais'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                GestureDetector(
+                    child: Icon(CupertinoIcons.add),
+                    onTap: () => _startAddNewTransaction(context)),
+              ],
+            ),
+          );
 
     final listOfTransactions = Container(
-        height: (MediaQuery.of(context).size.height -
-                MediaQuery.of(context).padding.top -
+        height: (deviceSettings.size.height -
+                deviceSettings.padding.top -
                 appBar.preferredSize.height) *
             0.7,
         child: TransactionList(_userTransactions, _deleteTransaction));
 
-    return Scaffold(
-      appBar: appBar,
-      body: SingleChildScrollView(
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            if (deviceOrientation == Orientation.landscape)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(_showChart ? 'Graficos' : 'Transações'),
-                  Switch(
-                    value: _showChart,
-                    onChanged: (value) {
-                      setState(() {
-                        _showChart = value;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            if (deviceOrientation == Orientation.landscape)
-              _showChart
-                  ? Container(
-                      height: (MediaQuery.of(context).size.height -
-                              MediaQuery.of(context).padding.top -
-                              appBar.preferredSize.height) *
-                          0.7,
-                      child: Chart(_recentTransactions))
-                  : listOfTransactions
-            else
-              Container(
-                  height: (MediaQuery.of(context).size.height -
-                          MediaQuery.of(context).padding.top -
-                          appBar.preferredSize.height) *
-                      0.3,
-                  child: Chart(_recentTransactions)),
-            listOfTransactions
-          ],
-        ),
+    final listOfTransactionsBar = SafeArea(
+        child: SingleChildScrollView(
+      child: Column(
+        // mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (deviceOrientation == Orientation.landscape)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(_showChart ? 'Graficos' : 'Transações',
+                    style: Theme.of(context).textTheme.headline6),
+                Switch.adaptive(
+                  activeColor: Theme.of(context).accentColor,
+                  value: _showChart,
+                  onChanged: (value) {
+                    setState(() {
+                      _showChart = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          if (deviceOrientation == Orientation.landscape)
+            _showChart
+                ? Container(
+                    height: (deviceSettings.size.height -
+                            deviceSettings.padding.top -
+                            appBar.preferredSize.height) *
+                        0.7,
+                    child: Chart(_recentTransactions))
+                : listOfTransactions
+          else
+            Container(
+                height: (deviceSettings.size.height -
+                        deviceSettings.padding.top -
+                        appBar.preferredSize.height) *
+                    0.3,
+                child: Chart(_recentTransactions)),
+        ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () => _startAddNewTransaction(context),
-      ),
-    );
+    ));
+
+    return ehIOS
+        ? Scaffold(
+            appBar: appBar,
+            body: listOfTransactionsBar,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: ehIOS
+                ? FloatingActionButton(
+                    child: Icon(Icons.add),
+                    onPressed: () => _startAddNewTransaction(context),
+                  )
+                : Container())
+        : CupertinoPageScaffold(
+            child: listOfTransactionsBar,
+            navigationBar: appBar,
+          );
   }
 }

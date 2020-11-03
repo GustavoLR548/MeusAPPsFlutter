@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'chart_bar.dart';
-import '../models/transaction.dart';
+import '../../models/transaction.dart';
 
 class Chart extends StatelessWidget {
   final List<Transaction> recentTransactions;
@@ -11,7 +11,7 @@ class Chart extends StatelessWidget {
   List<Map<String, Object>> get groupedTransactionValues {
     return List.generate(7, (index) {
       final weekDay = DateTime.now().subtract(
-        Duration(days: index),
+        Duration(days: index + 2),
       );
       double totalSum = 0.0;
 
@@ -19,7 +19,7 @@ class Chart extends StatelessWidget {
         if (_sameDay(tx, weekDay)) totalSum += tx.getValue();
       }
       return {
-        'day': DateFormat.E().format(weekDay).substring(0, 1),
+        'day': _translate(DateFormat.E().format(weekDay)).substring(0, 1),
         'amount': totalSum
       };
     }).reversed.toList();
@@ -61,5 +61,36 @@ class Chart extends StatelessWidget {
     return tx.getDateTime().day == d.day &&
         tx.getDateTime().month == d.month &&
         tx.getDateTime().year == d.year;
+  }
+
+  String _translate(String weekDay) {
+    String resp;
+    switch (weekDay) {
+      case 'Sun':
+        resp = 'Domingo';
+        break;
+      case 'Mon':
+        resp = 'Segunda';
+        break;
+      case 'Tue':
+        resp = 'Terça-feira';
+        break;
+      case 'Wed':
+        resp = 'Quarta-feira';
+        break;
+      case 'Thu':
+        resp = 'Quinta-feira';
+        break;
+      case 'Fri':
+        resp = 'Sexta-feira';
+        break;
+      case 'Sat':
+        resp = 'Sabado';
+        break;
+      default:
+        resp = weekDay;
+        break;
+    }
+    return resp;
   }
 }
