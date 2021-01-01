@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/transaction.dart';
+import 'transaction_item.dart';
 
 class TransactionList extends StatelessWidget {
   final List<Transaction> transactions;
@@ -31,38 +32,12 @@ class TransactionList extends StatelessWidget {
               ],
             ));
           })
-        : ListView.builder(
-            itemCount: transactions.length,
-            itemBuilder: (ctx, index) {
-              return Card(
-                  elevation: 5,
-                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 5),
-                  child: ListTile(
-                      leading: CircleAvatar(
-                        radius: 30,
-                        child: Padding(
-                          padding: EdgeInsets.all(6),
-                          child: FittedBox(
-                              child: Text(transactions[index].getAmount())),
-                        ),
-                      ),
-                      title: Text(transactions[index].getTitle(),
-                          style: Theme.of(context).textTheme.headline6),
-                      subtitle: Text(transactions[index].getDate()),
-                      trailing: MediaQuery.of(context).size.width > 400
-                          ? FlatButton.icon(
-                              label: Text('Deletar'),
-                              icon: Icon(Icons.delete),
-                              textColor: Theme.of(context).errorColor,
-                              onPressed: () => deleteTransaction(
-                                  transactions[index].getID()),
-                            )
-                          : IconButton(
-                              icon: Icon(Icons.delete),
-                              color: Theme.of(context).errorColor,
-                              onPressed: () => deleteTransaction(
-                                  transactions[index].getID()),
-                            )));
-            });
+        : ListView(
+            children: transactions
+                .map((transaction) => TransactionItem(
+                    key: ValueKey(transaction.id),
+                    transaction: transaction,
+                    deleteTransaction: deleteTransaction))
+                .toList());
   }
 }

@@ -47,7 +47,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final List<Transaction> _userTransactions = [];
   bool _showChart = false;
 
@@ -94,14 +94,67 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final bool ehIOS = Platform.isIOS;
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
 
-    final deviceSettings = MediaQuery.of(context);
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {}
 
-    final deviceOrientation = deviceSettings.orientation;
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
-    final PreferredSizeWidget appBar = ehIOS
+  ///Função para construir o aplicativo em modo landscape
+  List<Widget> _build_landscape(
+      AppBar appBar, MediaQueryData deviceSettings, Widget listOfTransactions) {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(_showChart ? 'Graficos' : 'Transações',
+              style: Theme.of(context).textTheme.headline6),
+          Switch.adaptive(
+            activeColor: Theme.of(context).accentColor,
+            value: _showChart,
+            onChanged: (value) {
+              setState(() {
+                _showChart = value;
+              });
+            },
+          ),
+        ],
+      ),
+      _showChart
+          ? Container(
+              height: (deviceSettings.size.height -
+                      deviceSettings.padding.top -
+                      appBar.preferredSize.height) *
+                  0.7,
+              child: Chart(_recentTransactions))
+          : listOfTransactions
+    ];
+  }
+
+  ///Função para construir o aplicativo em modo portrait
+  List<Widget> _build_portrait(
+      AppBar appBar, MediaQueryData deviceSettings, Widget listOfTransactions) {
+    return [
+      Container(
+          height: (deviceSettings.size.height -
+                  deviceSettings.padding.top -
+                  appBar.preferredSize.height) *
+              0.3,
+          child: Chart(_recentTransactions)),
+      listOfTransactions
+    ];
+  }
+
+  PreferredSizeWidget _buildAppBar(bool ehIOS) {
+    return ehIOS
         ? AppBar(
             title: Text(
               'Gastos Pessoais',
@@ -124,6 +177,16 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           );
+  }
+
+  Widget build(BuildContext context) {
+    final bool ehIOS = Platform.isIOS;
+
+    final deviceSettings = MediaQuery.of(context);
+
+    final deviceOrientation = deviceSettings.orientation;
+
+    final PreferredSizeWidget appBar = _buildAppBar(ehIOS);
 
     final listOfTransactions = Container(
         height: (deviceSettings.size.height -
@@ -139,38 +202,9 @@ class _MyHomePageState extends State<MyHomePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           if (deviceOrientation == Orientation.landscape)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(_showChart ? 'Graficos' : 'Transações',
-                    style: Theme.of(context).textTheme.headline6),
-                Switch.adaptive(
-                  activeColor: Theme.of(context).accentColor,
-                  value: _showChart,
-                  onChanged: (value) {
-                    setState(() {
-                      _showChart = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-          if (deviceOrientation == Orientation.landscape)
-            _showChart
-                ? Container(
-                    height: (deviceSettings.size.height -
-                            deviceSettings.padding.top -
-                            appBar.preferredSize.height) *
-                        0.7,
-                    child: Chart(_recentTransactions))
-                : listOfTransactions
+            ..._build_landscape(appBar, deviceSettings, listOfTransactions)
           else
-            Container(
-                height: (deviceSettings.size.height -
-                        deviceSettings.padding.top -
-                        appBar.preferredSize.height) *
-                    0.3,
-                child: Chart(_recentTransactions)),
+            ..._build_portrait(appBar, deviceSettings, listOfTransactions)
         ],
       ),
     ));
