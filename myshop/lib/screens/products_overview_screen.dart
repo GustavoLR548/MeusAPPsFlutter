@@ -28,7 +28,7 @@ class _ProductsOverviewState extends State<ProductsOverview> {
   }
 
   Future<void> _refreshData() async {
-    return Future.delayed(Duration.zero).then((value) async {
+    return Future.delayed(Duration(microseconds: 20)).then((value) async {
       setState(() {
         _isLoading = true;
       });

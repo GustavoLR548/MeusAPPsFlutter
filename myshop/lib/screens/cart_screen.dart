@@ -10,7 +10,7 @@ class CartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     void orderProducts(BuildContext ctx, CartsProvider cart) {
       if (cart.itemCount != 0) {
-        Provider.of<OrderProvider>(context, listen: false)
+        Provider.of<OrdersProvider>(context, listen: false)
             .addOrder(cart.items.values.toList(), cart.totalAmount);
         cart.clear();
       }
@@ -93,7 +93,7 @@ class _OrderButtonState extends State<OrderButton> {
                 _isLoading = true;
               });
               if (widget.cart.itemCount != 0) {
-                Provider.of<OrderProvider>(context, listen: false).addOrder(
+                Provider.of<OrdersProvider>(context, listen: false).addOrder(
                     widget.cart.items.values.toList(), widget.cart.totalAmount);
                 widget.cart.clear();
                 setState(() {

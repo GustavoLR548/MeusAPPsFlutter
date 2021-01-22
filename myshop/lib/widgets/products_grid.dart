@@ -14,16 +14,22 @@ class ProductsGrid extends StatelessWidget {
     final loadedProducts =
         !showFavorite ? productsData.favorites : productsData.items;
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(10),
-      itemCount: loadedProducts.length,
-      itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
-          value: loadedProducts[i], child: ProductItem()),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 3 / 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10),
-    );
+    if (loadedProducts.length == 0) {
+      return Center(
+        child: Text('No products available'),
+      );
+    } else {
+      return GridView.builder(
+        padding: const EdgeInsets.all(10),
+        itemCount: loadedProducts.length,
+        itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
+            value: loadedProducts[i], child: ProductItem()),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 3 / 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10),
+      );
+    }
   }
 }

@@ -4,16 +4,30 @@ import 'package:myshop/models/cart.dart';
 import 'package:myshop/models/order.dart';
 import 'package:http/http.dart' as http;
 
-class OrderProvider with ChangeNotifier {
+class OrdersProvider with ChangeNotifier {
   List<Order> _orders = [];
 
   List<Order> get orders {
     return [..._orders];
   }
 
+  String authToken;
+  String userId;
+
+  OrdersProvider();
+
+  OrdersProvider.loggedIn(this.authToken, this.userId);
+
+  void update(String authToken, String userId, List<Order> orders) {
+    this.authToken = authToken;
+    this.userId = userId;
+    this._orders = orders;
+  }
+
   Future<void> fetchFromServer() async {
-    const url =
-        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/orders.json';
+    if (authToken == null || userId == null) return;
+    final url =
+        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken';
     final response = await http.get(url);
     final extractedData = json.decode(response.body) as Map<String, dynamic>;
     if (extractedData == null) return;
@@ -37,8 +51,8 @@ class OrderProvider with ChangeNotifier {
   }
 
   Future<void> addOrder(List<Cart> cartProducts, double total) async {
-    const url =
-        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/orders.json';
+    final url =
+        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken';
 
     final timeStamp = DateTime.now();
     final response = await http.post(url,

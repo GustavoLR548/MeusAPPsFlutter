@@ -7,17 +7,36 @@ import '../models/product.dart';
 class ProductsProvider with ChangeNotifier {
   List<Product> _items = [];
 
-  //var _showFavoritesOnly = false;
+  String authToken;
+  String userId;
 
-  Future<void> fetchDataFromServer() async {
-    print('fetchDataFromServer');
-    const url =
-        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products.json';
+  ProductsProvider();
+
+  ProductsProvider.loggedIn(this.authToken, this.userId);
+
+  void update(String authToken, String userId, List<Product> items) {
+    this.authToken = authToken;
+    this.userId = userId;
+    this._items = items;
+  }
+
+  Future<void> fetchDataFromServer([bool filterByUser = false]) async {
+    final filterByUserUrl =
+        filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+
+    final url =
+        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products.json?auth=$authToken&$filterByUserUrl';
 
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       if (extractedData == null) return;
+
+      final favoritesUrl =
+          'https://projeto-teste-59c69-default-rtdb.firebaseio.com/usersFavorites/$userId.json?auth=$authToken';
+      final favoriteResponse = await http.get(favoritesUrl);
+      final favoriteData =
+          json.decode(favoriteResponse.body) as Map<String, dynamic>;
 
       final List<Product> loadedProducts = [];
       extractedData.forEach((id, prodData) {
@@ -26,13 +45,15 @@ class ProductsProvider with ChangeNotifier {
           title: prodData['title'],
           description: prodData['description'],
           price: prodData['price'],
-          isFavorite: prodData['isFavorite'],
+          isFavorite: favoriteData == null ? false : favoriteData[id] ?? false,
           imageUrl: prodData['imageUrl'],
         ));
       });
       _items = loadedProducts;
       notifyListeners();
-    } catch (error) {
+    } catch (error, stacktrace) {
+      print(error.toString());
+      print(stacktrace.toString());
       throw (error);
     }
   }
@@ -50,8 +71,8 @@ class ProductsProvider with ChangeNotifier {
   }
 
   Future<void> addProduct(Product p) async {
-    const url =
-        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products.json';
+    final url =
+        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products.json?auth=$authToken';
     try {
       final response = await http.post(url,
           body: json.encode({
@@ -59,7 +80,7 @@ class ProductsProvider with ChangeNotifier {
             'description': p.description,
             'imageUrl': p.imageUrl,
             'price': p.price,
-            'isFavorite': p.isFavorite,
+            'creatorId': userId
           }));
       final id = json.decode(response.body)['name'];
       final newProduct = Product(
@@ -75,19 +96,19 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  Future<void> toggleIsFavorite(String id) async {
-    final prodIndex = _items.indexWhere((prod) => prod.id == id);
+  Future<void> toggleIsFavorite(String productId) async {
+    final prodIndex = _items.indexWhere((prod) => prod.id == productId);
     if (prodIndex >= 0) {
       final p = _items[prodIndex];
       p.toggleFavoriteStatus();
 
       final url =
-          'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products/$id.json';
+          'https://projeto-teste-59c69-default-rtdb.firebaseio.com/usersFavorites/$userId/$productId.json?auth=$authToken';
       try {
-        final response = await http.patch(url,
-            body: json.encode({
-              'isFavorite': p.isFavorite,
-            }));
+        final response = await http.put(url,
+            body: json.encode(
+              p.isFavorite,
+            ));
         if (response.statusCode >= 400) {
           throw HttpException('Erro ao favoritar');
         }
@@ -102,7 +123,7 @@ class ProductsProvider with ChangeNotifier {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
       final url =
-          'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products/$id.json';
+          'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken';
       await http.patch(url,
           body: json.encode({
             'title': p.title,
@@ -119,7 +140,7 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> deleteProduct(String id) async {
     final url =
-        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products/$id.json';
+        'https://projeto-teste-59c69-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken';
     final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
     var existingProduct = _items[existingProductIndex];
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:myshop/models/product.dart';
-import 'package:myshop/providers/products_provider.dart';
+import '../models/product.dart';
+import '../providers/products_provider.dart';
 import '../providers/cart_provider.dart';
 import '../screens/product_details_screen.dart';
 import 'package:provider/provider.dart';
@@ -52,8 +52,15 @@ class ProductItem extends StatelessWidget {
               carts.addItem(product.id, product.price, product.title);
               showDialog(
                   context: context,
-                  builder: (ctx) =>
-                      SimpleDialog(title: Text('Product added!')));
+                  builder: (ctx) => SimpleDialog(
+                        title: Text('Product added!'),
+                        children: <Widget>[
+                          SimpleDialogOption(
+                            child: Text(
+                                'The product ${product.title} has been added to your cart'),
+                          )
+                        ],
+                      ));
             }),
           ),
         ));

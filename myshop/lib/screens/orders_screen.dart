@@ -19,7 +19,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       setState(() {
         _isLoading = true;
       });
-      await Provider.of<OrderProvider>(context, listen: false)
+      await Provider.of<OrdersProvider>(context, listen: false)
           .fetchFromServer();
       setState(() {
         _isLoading = false;
@@ -28,17 +28,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.initState();
   }
 
+  void dispose() {
+    _isLoading = null;
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
-    final orders = Provider.of<OrderProvider>(context);
+    final ordersProvider = Provider.of<OrdersProvider>(context);
+    final allOrders = ordersProvider.orders;
+
     return Scaffold(
       appBar: AppBar(title: Text('Your Orders')),
       drawer: AppDrawer(),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: orders.orders.length,
-              itemBuilder: (ctx, index) => OrderItem(orders.orders[index]),
-            ),
+          : allOrders.length == 0
+              ? Center(child: Text('No order has been made yet'))
+              : ListView.builder(
+                  itemCount: allOrders.length,
+                  itemBuilder: (ctx, index) => OrderItem(allOrders[index]),
+                ),
     );
   }
 }
